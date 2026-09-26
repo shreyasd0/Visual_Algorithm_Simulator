@@ -91,6 +91,7 @@ export default function CanvasGrid({
   const canvasRef = React.useRef(null);
   const draggingRef = React.useRef(null);
   const [selectedPoint, setSelectedPoint] = React.useState(null);
+  const [size, setSize] = React.useState(50);
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
@@ -259,6 +260,19 @@ export default function CanvasGrid({
 
   return (
     <div className="canvas-stage">
+      <label className="canvas-size-control">
+        <span>Size</span>
+        <input
+          type="range"
+          min="50"
+          max="100"
+          step="5"
+          value={size}
+          aria-label="Visualization size"
+          onChange={(event) => setSize(Number(event.target.value))}
+        />
+        <output>{size}%</output>
+      </label>
       <canvas
         ref={canvasRef}
         width={width}
@@ -269,7 +283,7 @@ export default function CanvasGrid({
         onPointerMove={moveHandle}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        style={{ touchAction: 'none', cursor: handles.length ? 'grab' : 'crosshair' }}
+        style={{ width: `${size}%`, touchAction: 'none', cursor: handles.length ? 'grab' : 'crosshair' }}
       />
       <output className="canvas-point-readout" aria-live="polite">
         {selectedPoint

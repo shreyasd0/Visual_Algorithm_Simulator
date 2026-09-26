@@ -307,6 +307,33 @@ input, select {
 
 .canvas-stage {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.canvas-size-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.canvas-size-control input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  accent-color: #39b8df;
+  cursor: pointer;
+}
+
+.canvas-size-control output {
+  min-width: 38px;
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .canvas-point-readout {
