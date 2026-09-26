@@ -98,7 +98,7 @@ The simulator exposes each algorithm’s current iteration values next to its vi
 
 ## 14. Screenshots
 
-Add current screenshots here after capturing the 2D workbench and each 3D mode. No screenshots are bundled with this source snapshot.
+
 
 ## 15. Results
 
