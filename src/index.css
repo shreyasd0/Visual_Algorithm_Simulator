@@ -1222,7 +1222,9 @@ body:has(.scene-app) {
 .dda-progress-info strong span { padding: 0 3px; color: #65778f; }
 .dda-progress-track { height: 4px; margin-top: 8px; overflow: hidden; border-radius: 8px; background: #253145; }
 .dda-progress-track div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #31a9e1, #9c78ff); transition: width 0.25s ease; }
-.dda-playback-controls { display: flex; align-items: center; gap: 7px; }
+.dda-playback-controls { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0; }
+.scene-speed-control { flex: 0 1 112px; min-width: 104px; }
+.scene-speed-control select { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 8px; }
 
 .dda-step-button {
   width: 34px;
@@ -1234,6 +1236,8 @@ body:has(.scene-app) {
   font-size: 1rem;
 }
 
+.dda-playback-controls .reset-control { box-sizing: border-box; width: 90px; flex: 0 0 90px; padding: 0 10px; text-align: center; white-space: nowrap; }
+.dda-playback-controls .reset-control:disabled { opacity: 0.4; cursor: not-allowed; }
 .dda-step-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .dda-playback-controls .reset-control,
 .dda-playback-controls .play-control { min-height: 34px; }
@@ -1251,7 +1255,6 @@ body:has(.scene-app) {
   .dda-scene-wrap, .dda-scene-wrap .scene3d-canvas { min-height: 390px; }
   .dda-playback-bar { align-items: stretch; flex-direction: column; gap: 12px; }
   .dda-playback-controls { justify-content: flex-end; }
-  .dda-playback-controls .reset-control { flex: 1; }
   .studio-header-tools { align-items: flex-end; }
   .algorithm-select-label { min-width: 150px; }
 }

@@ -3,14 +3,12 @@ import LineDrawing from './LineDrawing.jsx';
 import CircleDrawing from './CircleDrawing.jsx';
 import Transformations from './Transformations.jsx';
 import Clipping from './Clipping.jsx';
-import Filling from './Filling.jsx';
 
 const concepts = [
   { id: 'line', label: 'Line rasterization', detail: 'DDA · Bresenham', Component: LineDrawing },
   { id: 'circle', label: 'Circle rasterization', detail: 'Midpoint circle', Component: CircleDrawing },
   { id: 'transform', label: '2D transformations', detail: 'Translation · scale · rotate', Component: Transformations },
   { id: 'clip', label: 'Line clipping', detail: 'Cohen–Sutherland', Component: Clipping },
-  { id: 'fill', label: 'Region filling', detail: 'Flood fill', Component: Filling },
 ];
 
 export default function Algorithm2DLab({ onBackTo3D }) {
@@ -40,7 +38,7 @@ export default function Algorithm2DLab({ onBackTo3D }) {
             onClick={() => setActiveId(id)}
             aria-current={activeId === id ? 'page' : undefined}
           >
-            <span className="concept-mark" aria-hidden="true">{label === 'Line rasterization' ? '╱' : label === 'Circle rasterization' ? '◉' : label === '2D transformations' ? '↗' : label === 'Line clipping' ? '⌗' : '▦'}</span>
+            <span className="concept-mark" aria-hidden="true">{label === 'Line rasterization' ? '╱' : label === 'Circle rasterization' ? '◉' : label === '2D transformations' ? '↗' : '⌗'}</span>
             <span className="concept-copy"><strong>{label}</strong><small>{detail}</small></span>
           </button>
         ))}

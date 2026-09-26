@@ -1,4 +1,6 @@
 export function generate3DDDA(start, end) {
+  const coordinates = [start.x, start.y, start.z, end.x, end.y, end.z];
+  if (!coordinates.every(Number.isFinite)) throw new RangeError('3D line coordinates must be finite numbers.');
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const dz = end.z - start.z;
@@ -21,5 +23,7 @@ export function generate3DDDA(start, end) {
     });
   }
 
-  return { dx, dy, dz, steps, increment, points };
+  const deltas = { x: Math.abs(dx), y: Math.abs(dy), z: Math.abs(dz) };
+  const majorAxis = Object.keys(deltas).reduce((major, axis) => deltas[axis] > deltas[major] ? axis : major, 'x');
+  return { dx, dy, dz, steps, majorAxis, increment, points, complexity: 'O(max(|dx|, |dy|, |dz|))' };
 }

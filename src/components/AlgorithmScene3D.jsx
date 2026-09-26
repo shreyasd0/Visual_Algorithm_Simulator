@@ -61,20 +61,6 @@ function segmentsData(segments = []) {
   return new Float32Array(segments.flatMap(([a, b]) => [a.x, a.y, a.z, 0, 1, 0, b.x, b.y, b.z, 0, 1, 0]));
 }
 
-function circleData(center, radius, count = 96) {
-  const vertices = [];
-  const path = Array.from({ length: count }, (_, index) => {
-    const angle = index * Math.PI * 2 / count;
-    return { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius, z: center.z };
-  });
-  for (let index = 0; index < path.length; index += 1) {
-    const a = path[index];
-    const b = path[(index + 1) % path.length];
-    vertices.push(a.x, a.y, a.z, 0, 0, 1, b.x, b.y, b.z, 0, 0, 1);
-  }
-  return new Float32Array(vertices);
-}
-
 function boxData(bounds) {
   if (!bounds) return new Float32Array();
   const c = [
@@ -123,16 +109,12 @@ export default function AlgorithmScene3D({
   end,
   voxelPoints = [],
   currentIndex = 0,
-  circleCenter,
-  radius,
   transformOriginalSegments = [],
   transformSegments = [],
   transformedVertices = [],
   clipBounds,
   clipLine,
   clipOriginalLine,
-  volumeCells = [],
-  filledCells = [],
   selectedPoint,
   onSelectPoint,
 }) {
@@ -178,20 +160,13 @@ export default function AlgorithmScene3D({
       gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
       return { buffer, count: data.length / 6 };
     };
-    const center = mode === 'circle' ? circleCenter
-      : mode === 'transform' ? end
-        : mode === 'fill' ? { x: 0, y: 0, z: 0 }
-          : { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2, z: (start.z + end.z) / 2 };
-    const floorY = mode === 'circle' ? circleCenter.y - radius - 1.5
-      : mode === 'clip' && clipBounds ? clipBounds.ymin - 1.2
-        : mode === 'fill' ? -2.5
-          : Math.min(start.y, end.y, -1) - 1.5;
+    const center = mode === 'transform' ? end : { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2, z: (start.z + end.z) / 2 };
+    const floorY = mode === 'clip' && clipBounds ? clipBounds.ymin - 1.2 : Math.min(start.y, end.y, -1) - 1.5;
     const meshes = {
       cube: createBuffer(cubeData()),
       sphere: createBuffer(sphereData()),
       grid: createBuffer(gridData(10, floorY)),
       targetLine: createBuffer(lineData(start, end)),
-      circle: createBuffer(mode === 'circle' ? circleData(circleCenter, radius) : new Float32Array()),
       bounds: createBuffer(boxData(clipBounds)),
       originalSegments: createBuffer(segmentsData(transformOriginalSegments)),
       transformSegments: createBuffer(segmentsData(transformSegments)),
@@ -252,10 +227,6 @@ export default function AlgorithmScene3D({
         });
         draw(meshes.sphere, translatedScaled(start, 0.18), [1, 0.31, 0.4]);
         draw(meshes.sphere, translatedScaled(end, 0.18), [0.28, 0.94, 0.63]);
-      } else if (mode === 'circle') {
-        draw(meshes.circle, identity(), [0.42, 0.74, 0.92], gl.LINES);
-        voxelPoints.forEach((item, index, visible) => drawVoxel(item.voxel || item, index === visible.length - 1 ? [1, 0.68, 0.26] : [0.11, 0.72, 0.9]));
-        draw(meshes.sphere, translatedScaled(circleCenter, 0.14), [1, 0.31, 0.4]);
       } else if (mode === 'transform') {
         draw(meshes.originalSegments, identity(), [0.22, 0.49, 0.74], gl.LINES);
         draw(meshes.transformSegments, identity(), [0.56, 0.4, 0.98], gl.LINES);
@@ -270,10 +241,6 @@ export default function AlgorithmScene3D({
           draw(meshes.sphere, translatedScaled(clipLine.a, 0.14), [1, 0.45, 0.39]);
           draw(meshes.sphere, translatedScaled(clipLine.b, 0.14), [0.3, 0.89, 0.67]);
         }
-      } else if (mode === 'fill') {
-        const filled = new Set(filledCells.map((cell) => `${cell.x},${cell.y},${cell.z}`));
-        volumeCells.filter((cell) => !filled.has(`${cell.x},${cell.y},${cell.z}`)).forEach((cell) => drawVoxel(cell, [0.15, 0.27, 0.39], 0.39));
-        filledCells.forEach((cell, index) => drawVoxel(cell, index === filledCells.length - 1 ? [1, 0.68, 0.26] : [0.11, 0.72, 0.9], 0.43));
       }
 
       if (selectedPoint) draw(meshes.sphere, translatedScaled(selectedPoint, 0.2), [1, 0.84, 0.34]);
@@ -287,16 +254,11 @@ export default function AlgorithmScene3D({
       voxelPoints.slice(0, currentIndex + 1).forEach((item, index) => addCandidate(item.voxel || item, 'Raster point', index + 1));
       addCandidate(start, 'Start endpoint', 1);
       addCandidate(end, 'End endpoint', voxelPoints.length);
-    } else if (mode === 'circle') {
-      voxelPoints.forEach((item, index) => addCandidate(item.voxel || item, 'Circle point', index + 1));
-      addCandidate(circleCenter, 'Circle center', 1);
     } else if (mode === 'transform') {
       transformedVertices.slice(0, currentIndex + 1).forEach((point, index) => addCandidate(point, 'Transformed vertex', index + 1));
     } else if (mode === 'clip' && clipLine) {
       addCandidate(clipLine.a, 'Clipped endpoint A', currentIndex + 1);
       addCandidate(clipLine.b, 'Clipped endpoint B', currentIndex + 1);
-    } else if (mode === 'fill') {
-      filledCells.forEach((point, index) => addCandidate(point, 'Filled voxel', index + 1));
     }
 
     const hitTest = (event) => {
@@ -363,10 +325,10 @@ export default function AlgorithmScene3D({
       canvas.removeEventListener('pointercancel', onPointerUp);
       canvas.removeEventListener('click', onClick);
       canvas.removeEventListener('wheel', onWheel);
-      [meshes.cube, meshes.sphere, meshes.grid, meshes.targetLine, meshes.circle, meshes.bounds, meshes.originalSegments, meshes.transformSegments, meshes.clipOriginal, meshes.clipCurrent, ...meshes.axes].forEach(({ buffer }) => gl.deleteBuffer(buffer));
+      [meshes.cube, meshes.sphere, meshes.grid, meshes.targetLine, meshes.bounds, meshes.originalSegments, meshes.transformSegments, meshes.clipOriginal, meshes.clipCurrent, ...meshes.axes].forEach(({ buffer }) => gl.deleteBuffer(buffer));
       gl.deleteProgram(program);
     };
-  }, [mode, start, end, voxelPoints, currentIndex, circleCenter, radius, transformOriginalSegments, transformSegments, transformedVertices, clipBounds, clipLine, clipOriginalLine, volumeCells, filledCells, selectedPoint]);
+  }, [mode, start, end, voxelPoints, currentIndex, transformOriginalSegments, transformSegments, transformedVertices, clipBounds, clipLine, clipOriginalLine, selectedPoint]);
 
   return <canvas ref={canvasRef} className="scene3d-canvas" aria-label="Interactive 3D computer graphics algorithm visualization. Drag to orbit; scroll to zoom." />;
 }
